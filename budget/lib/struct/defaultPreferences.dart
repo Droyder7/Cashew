@@ -116,7 +116,7 @@ Future<Map<String, dynamic>> getDefaultPreferences() async {
     "hasOnboarded": false,
     "autoAddAssociatedTitles": true,
     "AutoTransactions-canReadEmails": false,
-    "notificationScanningDebug": false,
+    "notificationScanningDebug": true,
     "notificationScanning": false,
     "currencyIcon": "\$",
     "EmailAutoTransactions-amountOfEmails": 10,
