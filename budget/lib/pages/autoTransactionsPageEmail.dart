@@ -28,42 +28,9 @@ import 'package:provider/provider.dart';
 import '../functions.dart';
 import 'package:googleapis/gmail/v1.dart' as gMail;
 import 'package:html/parser.dart';
-// import 'package:notification_listener_service/notification_event.dart';
-// import 'package:notification_listener_service/notification_listener_service.dart';
 
 import 'addButton.dart';
 
-/* 
-StreamSubscription<ServiceNotificationEvent>? notificationListenerSubscription;
-
-Future initNotificationScanning() async {
-  if (getPlatform(ignoreEmulation: true) != PlatformOS.isAndroid) return;
-  notificationListenerSubscription?.cancel();
-  if (appStateSettings["notificationScanning"] != true) return;
-
-  bool status = await requestReadNotificationPermission();
-
-  if (status == true) {
-    notificationListenerSubscription =
-        NotificationListenerService.notificationsStream.listen(onNotification);
-  }
-}
-
-Future<bool> requestReadNotificationPermission() async {
-  bool status = await NotificationListenerService.isPermissionGranted();
-  if (status != true) {
-    status = await NotificationListenerService.requestPermission();
-  }
-  return status;
-}
-
-onNotification(ServiceNotificationEvent event) async {
-  String messageString = getNotificationMessage(event);
-  recentCapturedNotifications.insert(0, messageString);
-  recentCapturedNotifications.take(50);
-  queueTransactionFromMessage(messageString);
-}
-*/
 class InitializeNotificationService extends StatefulWidget {
   const InitializeNotificationService({required this.child, super.key});
   final Widget child;
@@ -79,7 +46,6 @@ class _InitializeNotificationServiceState
   void initState() {
     super.initState();
     Future.delayed(Duration.zero, () async {
-      // initNotificationScanning();
       await startNotificationListener();
     });
   }
@@ -142,18 +108,6 @@ Future queueTransactionFromMessage(String messageString) async {
   );
 }
 
-/* 
-String getNotificationMessage(ServiceNotificationEvent event) {
-  String output = "";
-  output = output + "Package name: " + event.packageName.toString() + "\n";
-  output =
-      output + "Notification removed: " + event.hasRemoved.toString() + "\n";
-  output = output + "\n----\n\n";
-  output = output + "Notification Title: " + event.title.toString() + "\n\n";
-  output = output + "Notification Content: " + event.content.toString();
-  return output;
-}
-*/
 class AutoTransactionsPageNotifications extends StatefulWidget {
   const AutoTransactionsPageNotifications({Key? key}) : super(key: key);
 
@@ -201,7 +155,6 @@ class _AutoTransactionsPageNotificationsState
               if (!hasPermission) {
                 return false;
               }
-              // initNotificationScanning();
               await startNotificationListener();
             } else {
               await stopNotificationListener();
