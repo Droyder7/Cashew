@@ -1,9 +1,7 @@
 import 'package:budget/colors.dart';
 import 'package:budget/database/tables.dart';
-import 'package:budget/functions.dart';
-import 'package:budget/main.dart';
 import 'package:budget/pages/homePage/homePageLineGraph.dart';
-import 'package:budget/pages/walletDetailsPage.dart';
+import 'package:budget/pages/premiumPage.dart';
 import 'package:budget/struct/databaseGlobal.dart';
 import 'package:budget/struct/settings.dart';
 import 'package:budget/widgets/notificationsSettings.dart';
@@ -11,7 +9,6 @@ import 'package:budget/widgets/periodCyclePicker.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 
 // default settings, defaultSettings, initial settings
@@ -133,7 +130,7 @@ Future<Map<String, dynamic>> getDefaultPreferences() async {
     "canShowTransactionActionButtonTip": true,
     "autoLoginDisabledOnWebTip": true,
     "allSpendingPageTip": true,
-    "notifications": true,
+    "notifications": false,
     "notificationHour": 20,
     "notificationMinute": 0,
     "notificationsUpcomingTransactions": true,
@@ -185,7 +182,7 @@ Future<Map<String, dynamic>> getDefaultPreferences() async {
     "premiumPopupAddTransactionLastShown": DateTime.now().toString(),
     "premiumPopupFreeSeen": false,
     "previewDemo": false,
-    "purchaseID": null,
+    "purchaseID": productIDs['lifetime'],
     "showAccountLabelTagInTransactionEntry": false,
     "showTransactionsMonthlySpendingSummary": true,
     "showTransactionsBalanceTransferTab": true,
