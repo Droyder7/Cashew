@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart';
 
+const initialActionResetTimeoutInSeconds = 2;
+
 class LocalNotificationController
     extends NotificationController<NotificationResponse, String, TZDateTime> {
   LocalNotificationController._();
@@ -44,7 +46,14 @@ class LocalNotificationController
   NotificationResponse? _initialAction;
 
   @override
-  NotificationResponse? get initialAction => _initialAction;
+  NotificationResponse? get initialAction {
+    final currentAction = _initialAction;
+    Future.delayed(
+      Duration(seconds: initialActionResetTimeoutInSeconds),
+      () => _initialAction = null,
+    );
+    return currentAction;
+  }
 
   @override
   Future<NotificationResponse?> init() async {
@@ -95,7 +104,7 @@ class LocalNotificationController
               sound: true,
             );
       case TargetPlatform.android:
-        await plugin
+        return await plugin
             .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin>()
             ?.requestNotificationsPermission();
@@ -115,7 +124,7 @@ class LocalNotificationController
   @override
   Future<int?> createNotification({
     required NotificationContent content,
-    required NotificationType type,
+    NotificationType type = NotificationType.alert,
     String? payload,
   }) async {
     final hasPermission = await checkNotificationPermission();
@@ -156,7 +165,7 @@ class LocalNotificationController
 
   Future<int?> scheduleNotification({
     required NotificationContent content,
-    required NotificationType type,
+    NotificationType type = NotificationType.alert,
     required TZDateTime schedule,
     String? payload,
     bool recurring = false,

@@ -11,13 +11,13 @@ abstract class NotificationController<T, S, U> {
 
   Future<int?> createNotification({
     required NotificationContent content,
-    required NotificationType type,
+    NotificationType type = NotificationType.alert,
     S? payload,
   });
 
   Future<int?> scheduleNotification({
     required NotificationContent content,
-    required NotificationType type,
+    NotificationType type = NotificationType.alert,
     required U schedule,
     S? payload,
     bool recurring = false,
