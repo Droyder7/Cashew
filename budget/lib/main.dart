@@ -57,7 +57,8 @@ void main() async {
   sharedPreferences = await SharedPreferences.getInstance();
   database = await constructDb('db');
 
-  notificationPayload = await initializeNotifications();
+  await notificationController.init();
+
   initNotificationListener();
 
   entireAppLoaded = false;
