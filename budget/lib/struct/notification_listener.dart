@@ -10,16 +10,20 @@ import 'package:flutter_notification_listener/flutter_notification_listener.dart
 ReceivePort port = ReceivePort();
 List<String> recentCapturedNotifications = [];
 
-void initNotificationListener() {
-  NotificationsListener.initialize(callbackHandle: _callback);
+Future<void> initNotificationListener() async {
+  try {
+    await NotificationsListener.initialize(callbackHandle: _callback);
 
-  // this can fix restart<debug> can't handle error
-  IsolateNameServer.removePortNameMapping("_listener_");
-  IsolateNameServer.registerPortWithName(port.sendPort, "_listener_");
+    // this can fix restart<debug> can't handle error
+    IsolateNameServer.removePortNameMapping("_listener_");
+    IsolateNameServer.registerPortWithName(port.sendPort, "_listener_");
 
-  port.listen((event) => onNotification(event as NotificationEvent));
-  // don't use the default receivePort
-  // NotificationsListener.receivePort.listen((evt) => onData(evt));
+    port.listen((event) => onNotification(event as NotificationEvent));
+    // don't use the default receivePort
+    // NotificationsListener.receivePort.listen((evt) => onData(evt));
+  } catch (e) {
+    print('Error initializing notification listener: $e');
+  }
 }
 
 onNotification(NotificationEvent event) async {
@@ -80,10 +84,10 @@ Future<void> stopNotificationListener() async {
 @pragma(
     'vm:entry-point') // prevent dart from stripping out this function on release build in Flutter 3.x
 void _callback(NotificationEvent evt) {
-  print("send evt to ui: $evt");
   if ((evt.packageName ?? '') == 'com.budget.tracker_app') {
     return;
   }
+  print("send evt to ui: $evt");
   final SendPort? send = IsolateNameServer.lookupPortByName("_listener_");
   if (send == null) print("can't find the sender");
   send?.send(evt);

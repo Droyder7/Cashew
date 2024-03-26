@@ -6,7 +6,7 @@ import 'package:budget/functions.dart';
 import 'package:budget/main.dart';
 import 'package:budget/pages/addTransactionPage.dart';
 import 'package:budget/struct/databaseGlobal.dart';
-import 'package:budget/struct/initializeNotifications.dart';
+import 'package:budget/struct/notificationsGlobal.dart';
 import 'package:budget/struct/settings.dart';
 import 'package:budget/widgets/globalSnackbar.dart';
 import 'package:budget/widgets/importCSV.dart';
@@ -325,6 +325,15 @@ Future<int?> addTransactionFromParams(Map<String, String> params) async {
   );
   if (title != "" && mainAndSubCategory.main != null) {
     await addAssociatedTitles(title, mainAndSubCategory.main!);
+  }
+
+  if (rowId != null) {
+    final trx = await database.getTransactionFromRowId(rowId);
+
+    final context = appStateKey.currentContext;
+    if (context != null) {
+      await notificationController.showTransactionNotification(context, trx);
+    }
   }
 
   return rowId;

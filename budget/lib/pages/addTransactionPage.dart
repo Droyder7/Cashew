@@ -104,6 +104,7 @@ class AddTransactionPage extends StatefulWidget {
     this.selectedNotes,
     this.startInitialAddTransactionSequence = true,
     this.transferBalancePopup = false,
+    this.quickEdit = false,
     required this.routesToPopAfterDelete,
   }) : super(key: key);
 
@@ -124,6 +125,7 @@ class AddTransactionPage extends StatefulWidget {
   final String? selectedNotes;
   final bool startInitialAddTransactionSequence;
   final bool transferBalancePopup;
+  final bool quickEdit;
 
   @override
   _AddTransactionPageState createState() => _AddTransactionPageState();
@@ -753,6 +755,9 @@ class _AddTransactionPageState extends State<AddTransactionPage>
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         updateInitial();
+        if (widget.quickEdit) {
+          _startSelectTitleSequence();
+        }
       });
     } else {
       if (widget.selectedType != null) {
@@ -770,28 +775,7 @@ class _AddTransactionPageState extends State<AddTransactionPage>
         await premiumPopupAddTransaction(context);
         if (widget.startInitialAddTransactionSequence == false) return;
         if (appStateSettings["askForTransactionTitle"]) {
-          openBottomSheet(
-            context,
-            // Only allow full snap when entering a title
-            popupWithKeyboard: true,
-            SelectTitle(
-              selectedTitle: selectedTitle,
-              setSelectedNote: setSelectedNoteController,
-              setSelectedTitle: setSelectedTitleController,
-              setSelectedCategory: setSelectedCategory,
-              setSelectedSubCategory: setSelectedSubCategory,
-              next: () {
-                afterSetTitle();
-              },
-              noteInputController: _noteInputController,
-              setSelectedDateTime: (DateTime date) {
-                setState(() {
-                  selectedDate = date;
-                });
-              },
-              selectedDate: widget.selectedDate,
-            ),
-          );
+          _startSelectTitleSequence();
         } else {
           afterSetTitle();
         }
@@ -875,6 +859,34 @@ class _AddTransactionPageState extends State<AddTransactionPage>
     }
   }
 
+  void _startSelectTitleSequence() {
+    openBottomSheet(
+      context,
+      // Only allow full snap when entering a title
+      popupWithKeyboard: true,
+      SelectTitle(
+        selectedTitle: selectedTitle,
+        setSelectedNote: setSelectedNoteController,
+        setSelectedTitle: setSelectedTitleController,
+        setSelectedCategory: setSelectedCategory,
+        setSelectedSubCategory: setSelectedSubCategory,
+        next: afterSetTitle,
+        noteInputController: _noteInputController,
+        setSelectedDateTime: (DateTime date) {
+          setState(() {
+            selectedDate = date;
+          });
+        },
+        selectedDate: widget.selectedDate,
+      ),
+    );
+    // Fix over-scroll stretch when keyboard pops up quickly
+    Future.delayed(Duration(milliseconds: 100), () {
+      bottomSheetControllerGlobal.scrollTo(0,
+          duration: Duration(milliseconds: 100));
+    });
+  }
+
   Future afterSetTitle() async {
     MainAndSubcategory mainAndSubcategory = await selectCategorySequence(
       context,
@@ -888,7 +900,7 @@ class _AddTransactionPageState extends State<AddTransactionPage>
       setSelectedIncome: (value) {
         setSelectedIncome(value == true, initiallySetting: value != null);
       },
-      skipIfSet: true,
+      skipIfSet: !widget.quickEdit,
       selectedIncomeInitial: null,
       extraWidgetAfter: Column(
         children: [
@@ -910,7 +922,8 @@ class _AddTransactionPageState extends State<AddTransactionPage>
     );
 
     if (mainAndSubcategory.main != null &&
-        mainAndSubcategory.ignoredSubcategorySelection == false) {
+        !mainAndSubcategory.ignoredSubcategorySelection &&
+        !widget.quickEdit) {
       selectAmountPopup(
         next: () async {
           await addTransaction();
@@ -3977,6 +3990,13 @@ class _SelectCategoryWithIncomeExpenseSelectorState
             IncomeExpenseButtonSelector(setSelectedIncome: (value) {
               setSelectedIncome(value);
             }),
+          if (widget.extraWidgetAfter != null) ...[
+            widget.extraWidgetAfter!,
+            Divider(
+              indent: 18,
+              endIndent: 18,
+            ),
+          ],
           Padding(
             padding: const EdgeInsets.only(left: 18, right: 18),
             child: SelectCategory(
@@ -3988,7 +4008,6 @@ class _SelectCategoryWithIncomeExpenseSelectorState
               // selectedIncome == null && widget.selectedIncomeInitial == null,
             ),
           ),
-          if (widget.extraWidgetAfter != null) widget.extraWidgetAfter!,
         ],
       ),
     );
