@@ -25,6 +25,11 @@ void initNotificationListener() {
 onNotification(NotificationEvent event) async {
   final trxParams = await parseTransactionFromNotification(event);
   if (trxParams.isEmpty) return;
+
+  await addTransactionFromParams({
+    ...trxParams,
+    'notes': '[${event.title}] ${event.text}',
+  });
 }
 
 Future<Map<String, String>> parseTransactionFromNotification(
@@ -33,7 +38,7 @@ Future<Map<String, String>> parseTransactionFromNotification(
   recentCapturedNotifications.insert(0, notificationMessage);
   recentCapturedNotifications.take(10);
 
-  return {};
+  return await parseTransactionFromMessage(notificationMessage);
 }
 
 String getNotificationMessage(NotificationEvent event) => '''

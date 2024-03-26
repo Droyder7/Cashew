@@ -6,6 +6,7 @@ import 'package:budget/functions.dart';
 import 'package:budget/main.dart';
 import 'package:budget/pages/addTransactionPage.dart';
 import 'package:budget/struct/databaseGlobal.dart';
+import 'package:budget/struct/initializeNotifications.dart';
 import 'package:budget/struct/settings.dart';
 import 'package:budget/widgets/globalSnackbar.dart';
 import 'package:budget/widgets/importCSV.dart';
@@ -294,6 +295,39 @@ executeAppLink(BuildContext? context, Uri uri) async {
 
       break;
   }
+}
+
+Future<int?> addTransactionFromParams(Map<String, String> params) async {
+  MainAndSubcategory mainAndSubCategory =
+      await getMainAndSubcategoryFromParams(params);
+  double amount = getAmountFromParams(params);
+
+  final title = params["title"] ?? "";
+  final wallet = await database.getWalletInstance(
+    params['walletPk'] ?? appStateSettings["selectedWalletPk"],
+  );
+
+  final rowId = await database.createOrUpdateTransaction(
+    Transaction(
+      transactionPk: "-1",
+      name: title,
+      amount: amount,
+      note: params["notes"] ?? "",
+      categoryFk: mainAndSubCategory.main?.categoryPk ?? "",
+      subCategoryFk: mainAndSubCategory.sub?.categoryPk,
+      walletFk: wallet.walletPk,
+      dateCreated: DateTime.now(),
+      income: amount > 0,
+      paid: true,
+      skipPaid: false,
+    ),
+    insert: true,
+  );
+  if (title != "" && mainAndSubCategory.main != null) {
+    await addAssociatedTitles(title, mainAndSubCategory.main!);
+  }
+
+  return rowId;
 }
 
 double getAmountFromParams(Map<String, String> params) {
