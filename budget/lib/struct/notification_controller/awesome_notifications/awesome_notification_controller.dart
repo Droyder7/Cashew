@@ -171,7 +171,7 @@ class AwesomeNotificationController extends NotificationController<
       return null;
     }
 
-    final notificationId = id ?? _notificationCount++;
+    final notificationId = id ?? _notificationCount;
 
     final isCreated = await plugin.createNotification(
       content: NotificationContent(
@@ -197,7 +197,7 @@ class AwesomeNotificationController extends NotificationController<
           .toList(),
     );
 
-    if (isCreated && notificationId == _notificationCount - 1) {
+    if (isCreated && notificationId == _notificationCount) {
       _notificationCount++;
     }
 
@@ -218,7 +218,7 @@ class AwesomeNotificationController extends NotificationController<
     if (!hasPermission) {
       return null;
     }
-    final notificationId = id ?? _notificationCount++;
+    final notificationId = id ?? _notificationCount;
 
     final isCreated = await plugin.createNotification(
       content: NotificationContent(
@@ -234,7 +234,7 @@ class AwesomeNotificationController extends NotificationController<
       schedule: schedule,
     );
 
-    if (isCreated && notificationId == _notificationCount - 1) {
+    if (isCreated && notificationId == _notificationCount) {
       _notificationCount++;
     }
 
