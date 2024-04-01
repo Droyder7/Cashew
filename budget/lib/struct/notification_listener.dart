@@ -9,6 +9,7 @@ import 'package:flutter_notification_listener/flutter_notification_listener.dart
 
 ReceivePort port = ReceivePort();
 List<String> recentCapturedNotifications = [];
+List<String> allowedPackages = ['com.google.android.apps.messaging'];
 
 Future<void> initNotificationListener() async {
   try {
@@ -84,7 +85,7 @@ Future<void> stopNotificationListener() async {
 @pragma(
     'vm:entry-point') // prevent dart from stripping out this function on release build in Flutter 3.x
 void _callback(NotificationEvent evt) {
-  if ((evt.packageName ?? '') == 'com.budget.tracker_app') {
+  if (!allowedPackages.contains(evt.packageName)) {
     return;
   }
   print("send evt to ui: $evt");
