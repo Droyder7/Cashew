@@ -9,6 +9,8 @@ import 'package:flutter_notification_listener/flutter_notification_listener.dart
 
 ReceivePort port = ReceivePort();
 List<String> recentCapturedNotifications = [];
+
+// TODO: make it user configurable from settings
 List<String> allowedPackages = ['com.google.android.apps.messaging'];
 
 Future<void> initNotificationListener() async {
@@ -41,7 +43,7 @@ Future<Map<String, String>> parseTransactionFromNotification(
     NotificationEvent event) async {
   final notificationMessage = getNotificationMessage(event);
   recentCapturedNotifications.insert(0, notificationMessage);
-  recentCapturedNotifications.take(10);
+  recentCapturedNotifications = recentCapturedNotifications.take(10).toList();
 
   return await parseTransactionFromMessage(notificationMessage);
 }
