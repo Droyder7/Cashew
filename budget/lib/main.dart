@@ -54,7 +54,8 @@ void main() async {
   database = await constructDb('db');
 
   await notificationController.init();
-  await initNotificationListener();
+
+  initNotificationListener();
 
   entireAppLoaded = false;
   currenciesJSON = await json.decode(
