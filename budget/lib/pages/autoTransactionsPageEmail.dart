@@ -119,16 +119,23 @@ Future queueTransactionFromMessage(String messageString) async {
   ScannerTemplate? templateFound;
 
   for (ScannerTemplate scannerTemplate in scannerTemplates) {
-    if (messageString.contains(scannerTemplate.contains)) {
+    final regExp = RegExp(scannerTemplate.regex);
+    if (regExp.hasMatch(messageString)) {
       templateFound = scannerTemplate;
-      title = getTransactionTitleFromEmail(
-          messageString,
-          scannerTemplate.titleTransactionBefore,
-          scannerTemplate.titleTransactionAfter);
-      amountDouble = getTransactionAmountFromEmail(
-          messageString,
-          scannerTemplate.amountTransactionBefore,
-          scannerTemplate.amountTransactionAfter);
+      final match = regExp.firstMatch(messageString)!;
+
+      for (final group in match.groupNames) {
+        final val = match.namedGroup(group);
+        switch (group) {
+          case 'title':
+            title = val ?? '';
+            break;
+          case 'amount':
+            amountDouble = double.tryParse((val ?? '').replaceAll(',', ''));
+            break;
+          default:
+        }
+      }
       break;
     }
   }

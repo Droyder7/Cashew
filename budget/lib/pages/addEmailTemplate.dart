@@ -191,10 +191,10 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
           setState(() {});
         },
         onSubmit: (selection) {
-          onSubmit(selection);
           determineBottomButton();
           setState(() {});
           Navigator.pop(context);
+          onSubmit(selection);
         },
       ),
     );
@@ -425,7 +425,7 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
       dateTimeModified: null,
       amountTransactionAfter: "",
       amountTransactionBefore: "",
-      contains: selectedSubject ?? "",
+      contains: "",
       defaultCategoryFk: selectedCategory!.categoryPk,
       templateName: selectedName ?? "",
       titleTransactionAfter: "",
@@ -562,69 +562,61 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
                               onTap: (messageString) {
                                 setMessageString(messageString);
                                 Navigator.pop(context);
+
+                                final msg = selectedMessageString!;
+
+                                selectMessagePart(
+                                  context,
+                                  title: 'Select Amount',
+                                  onSubmit: (selection) {
+                                    selectedAmount = msg.substring(
+                                      selection.start,
+                                      selection.end,
+                                    );
+                                    selectedSubject = msg;
+                                    selectedSubject = MessagePart.amount
+                                        .replaceWithRegex(selectedSubject ?? '',
+                                            selectedAmount ?? '');
+
+                                    setState(() {});
+
+                                    selectMessagePart(
+                                      context,
+                                      title: 'Select Title',
+                                      onSubmit: (selection) {
+                                        selectedTitle = msg.substring(
+                                          selection.start,
+                                          selection.end,
+                                        );
+                                        selectedSubject = MessagePart.title
+                                            .replaceWithRegex(
+                                                selectedSubject ?? '',
+                                                selectedTitle ?? '');
+
+                                        selectMessagePart(
+                                          context,
+                                          title: 'Select Ignored Part',
+                                          onSubmit: (selection) {
+                                            final substring = msg.substring(
+                                              selection.start,
+                                              selection.end,
+                                            );
+                                            ignoredParts.add(substring);
+                                            selectedSubject = MessagePart
+                                                .ignored
+                                                .replaceWithRegex(
+                                              selectedSubject ?? '',
+                                              substring,
+                                            );
+                                          },
+                                        );
+                                      },
+                                    );
+                                  },
+                                );
                               },
                             ),
                           ),
-                        );
-
-                        if (selectedMessageString == null) {
-                          return;
-                        }
-
-                        final msg = selectedMessageString!;
-                        selectedSubject = msg;
-                        setState(() {});
-
-                        await selectMessagePart(
-                          context,
-                          title: 'Select Amount',
-                          onSubmit: (selection) {
-                            selectedAmount = msg.substring(
-                              selection.start,
-                              selection.end,
-                            );
-                            selectedSubject = MessagePart.amount
-                                .replaceWithRegex(selectedSubject ?? '',
-                                    selectedAmount ?? '');
-                          },
-                        );
-
-                        if (selectedAmount == null) {
-                          return;
-                        }
-
-                        await selectMessagePart(
-                          context,
-                          title: 'Select Title',
-                          onSubmit: (selection) {
-                            selectedTitle = msg.substring(
-                              selection.start,
-                              selection.end,
-                            );
-                            selectedSubject = MessagePart.title
-                                .replaceWithRegex(
-                                    selectedSubject ?? '', selectedTitle ?? '');
-                          },
-                        );
-                        if (selectedTitle == null) {
-                          return;
-                        }
-
-                        await selectMessagePart(
-                          context,
-                          title: 'Select Ignored Part',
-                          onSubmit: (selection) {
-                            final substring = msg.substring(
-                              selection.start,
-                              selection.end,
-                            );
-                            ignoredParts.add(substring);
-                            selectedSubject =
-                                MessagePart.ignored.replaceWithRegex(
-                              selectedSubject ?? '',
-                              substring,
-                            );
-                          },
                         );
                       },
                     ),

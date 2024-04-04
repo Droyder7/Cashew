@@ -3,6 +3,8 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:budget/pages/autoTransactionsPageEmail.dart';
+import 'package:budget/struct/notification_controller/models.dart';
+import 'package:budget/struct/notificationsGlobal.dart';
 import 'package:budget/widgets/util/deepLinks.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 
@@ -46,11 +48,26 @@ Future<void> initNotificationListener() async {
 
 onNotification(NotificationEvent event) async {
   final trxParams = await parseTransactionFromNotification(event);
-  if (trxParams.isEmpty) return;
+  if (trxParams.isEmpty) return handleNonTransactionNotification(event);
 
   trxParams['notes'] = '[${event.title}] ${trxParams['notes']}';
 
   await addTransactionFromParams(trxParams);
+}
+
+const possibleTransactionKeywords = ['debit', 'credit', '5890', '8389'];
+
+handleNonTransactionNotification(NotificationEvent event) async {
+  final message = getSanitizedMessage(event.text);
+  if (possibleTransactionKeywords.any((keyword) => message.contains(keyword))) {
+    await notificationController.createNotification(
+      content: NotificationData(
+          title: 'New Transaction Detected, Add Scanner?', body: message),
+      payload: {
+        'type': 'addScannerTemplate',
+      },
+    );
+  }
 }
 
 Future<Map<String, String>> parseTransactionFromNotification(
