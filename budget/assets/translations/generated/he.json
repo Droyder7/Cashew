@@ -1114,5 +1114,13 @@
   "error-parsing-json": "שגיאה בניתוח JSON",
   "transactions-in-the-csv": "עסקאות ב-CSV.",
   "errors": "שגיאות",
-  "black": "שָׁחוֹר"
+  "black": "שָׁחוֹר",
+  "future-transactions": "עסקאות עתידיות",
+  "hidden": "מוּסתָר",
+  "present-transactions": "הצג עסקאות",
+  "past-transactions": "עסקאות קודמות",
+  "all-outgoing-incoming": "הכל יוצא ונכנס",
+  "all-outgoing-incoming-description-1": "כלול את כל תזרים המזומנים השלילי/חיובי",
+  "all-outgoing-incoming-description-2": "דוגמה: כלול עסקאות הלוואות",
+  "applies-when-switching-tabs-in-the-homepage-transactions-list": "חל בעת החלפת כרטיסיות ברשימת העסקאות בדף הבית"
 }

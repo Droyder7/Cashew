@@ -1114,5 +1114,13 @@
   "error-parsing-json": "Eroare la analizarea JSON",
   "transactions-in-the-csv": "tranzacții în CSV.",
   "errors": "Erori",
-  "black": "Negru"
+  "black": "Negru",
+  "future-transactions": "Tranzacții viitoare",
+  "hidden": "ascuns",
+  "present-transactions": "Tranzacții prezente",
+  "past-transactions": "Tranzacții anterioare",
+  "all-outgoing-incoming": "Toate cele de ieșire și de intrare",
+  "all-outgoing-incoming-description-1": "Includeți toate fluxurile de numerar negative/pozitive",
+  "all-outgoing-incoming-description-2": "Exemplu: Includeți tranzacțiile de împrumut",
+  "applies-when-switching-tabs-in-the-homepage-transactions-list": "Se aplică la schimbarea filelor din lista de tranzacții de pe pagina de pornire"
 }

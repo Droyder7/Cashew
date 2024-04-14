@@ -1114,5 +1114,13 @@
   "error-parsing-json": "Error al analizar JSON",
   "transactions-in-the-csv": "transacciones en el CSV.",
   "errors": "Errores",
-  "black": "Negro"
+  "black": "Negro",
+  "future-transactions": "Transacciones futuras",
+  "hidden": "oculto",
+  "present-transactions": "Transacciones presentes",
+  "past-transactions": "Transacciones pasadas",
+  "all-outgoing-incoming": "Todo saliente y entrante",
+  "all-outgoing-incoming-description-1": "Incluir todo el flujo de caja negativo/positivo",
+  "all-outgoing-incoming-description-2": "Ejemplo: incluir transacciones de préstamos",
+  "applies-when-switching-tabs-in-the-homepage-transactions-list": "Se aplica al cambiar de pestaña en la lista de transacciones de la página de inicio"
 }

@@ -1114,5 +1114,13 @@
   "error-parsing-json": "Error sa Pag-parse ng JSON",
   "transactions-in-the-csv": "mga transaksyon sa CSV.",
   "errors": "Mga pagkakamali",
-  "black": "Itim"
+  "black": "Itim",
+  "future-transactions": "Mga Transaksyon sa Hinaharap",
+  "hidden": "nakatago",
+  "present-transactions": "Mga Kasalukuyang Transaksyon",
+  "past-transactions": "Mga nakaraang Transaksyon",
+  "all-outgoing-incoming": "Lahat ng Papalabas at Papasok",
+  "all-outgoing-incoming-description-1": "Isama ang lahat ng negatibo/positibong cash flow",
+  "all-outgoing-incoming-description-2": "Halimbawa: Isama ang mga transaksyon sa pautang",
+  "applies-when-switching-tabs-in-the-homepage-transactions-list": "Nalalapat kapag lumilipat ng mga tab sa listahan ng mga transaksyon sa homepage"
 }
