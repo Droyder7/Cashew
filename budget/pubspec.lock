@@ -647,10 +647,11 @@ packages:
   flutter_notification_listener:
     dependency: "direct main"
     description:
-      name: flutter_notification_listener
-      sha256: "90ab50be0d55ada281aa3ea05b156ae16a971fb55ed64aa2e876f916e65f5e6d"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "22216b341bae58dcd70dc0913ba95f52c6ea8800"
+      url: "https://github.com/Droyder7/flutter_notification_listener.git"
+    source: git
     version: "1.3.3"
   flutter_plugin_android_lifecycle:
     dependency: transitive

@@ -54,7 +54,9 @@ dependencies:
     path: ./packages/implicitly_animated_reorderable_list-0.4.2-modified/
   shimmer: ^2.0.0
   carousel_slider: ^4.2.1
-  flutter_notification_listener: ^1.3.2
+  flutter_notification_listener:
+    git:
+      url: https://github.com/Droyder7/flutter_notification_listener.git
   # installed_apps: ^1.3.1
   url_launcher: ^6.1.7
   flutter_launcher_icons: "^0.10.0"
