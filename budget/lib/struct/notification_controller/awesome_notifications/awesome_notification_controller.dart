@@ -38,7 +38,7 @@ class AwesomeNotificationController extends NotificationController<
   @override
   ReceivedAction? get initialAction => _initialAction;
 
-  String get _defaultIcon => 'resource://drawable/notification_icon_android2';
+  String get _defaultIcon => 'resource://drawable/notification_icon_android';
 
   List<NotificationChannel> _channels = [];
 

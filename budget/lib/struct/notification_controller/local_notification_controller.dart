@@ -34,7 +34,7 @@ class LocalNotificationController
   @override
   Future<bool> initNotificationPlugin() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('notification_icon_android2');
+        AndroidInitializationSettings('notification_icon_android');
     final DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
             onDidReceiveLocalNotification: (_, __, ___, ____) {});

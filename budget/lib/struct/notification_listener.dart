@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -6,7 +7,9 @@ import 'package:budget/pages/autoTransactionsPageEmail.dart';
 import 'package:budget/struct/notification_controller/models.dart';
 import 'package:budget/struct/notificationsGlobal.dart';
 import 'package:budget/widgets/util/deepLinks.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 const sampleNotifications = [
   'Dear UPI user A/C *8389 debited by 110.00 on date 24Mar24 trf to ADI PANJABI Refno 408406270394. If not u? call 1800111109',
@@ -90,6 +93,10 @@ String getSanitizedMessage(String? msg) => (msg ?? '')
 // ''';
 
 Future<bool> requestNotificationListeningPermission() async {
+  if (!await FlutterForegroundTask.isIgnoringBatteryOptimizations) {
+    // This function requires `android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` permission.
+    await FlutterForegroundTask.requestIgnoreBatteryOptimization();
+  }
   final hasPermission = (await NotificationsListener.hasPermission) ?? false;
   if (!hasPermission) {
     print("no permission, so open settings");
@@ -106,7 +113,7 @@ Future<bool> startNotificationListener() async {
 
   var isRunning = await NotificationsListener.isRunning;
   if (!(isRunning ?? false)) {
-    isRunning = await NotificationsListener.startService(foreground: false);
+    isRunning = await NotificationsListener.startService(foreground: true);
   }
 
   return isRunning ?? false;
@@ -115,7 +122,8 @@ Future<bool> startNotificationListener() async {
 Future<bool> stopNotificationListener() async {
   final isRunning = (await NotificationsListener.isRunning) ?? false;
   if (isRunning) {
-    return await NotificationsListener.stopService() ?? false;
+    final isStopped = await NotificationsListener.stopService() ?? false;
+    return isStopped;
   }
 
   return true;
@@ -123,9 +131,9 @@ Future<bool> stopNotificationListener() async {
 
 @pragma('vm:entry-point')
 void _callback(NotificationEvent evt) {
-  if (!allowedPackages.contains(evt.packageName)) {
-    return;
-  }
+  // if (!allowedPackages.contains(evt.packageName)) {
+  //   return;
+  // }
   print("send evt to ui: $evt");
   final send = IsolateNameServer.lookupPortByName(_portName);
   if (send == null) {
