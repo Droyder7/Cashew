@@ -3,7 +3,6 @@ import 'package:budget/functions.dart';
 import 'package:budget/pages/autoTransactionsPageEmail.dart';
 import 'package:budget/struct/iconObjects.dart';
 import 'package:budget/struct/keyboardIntents.dart';
-import 'package:budget/struct/notification_listener.dart';
 import 'package:budget/widgets/fadeIn.dart';
 import 'package:budget/struct/languageMap.dart';
 import 'package:budget/struct/initializeBiometrics.dart';
@@ -54,7 +53,7 @@ void main() async {
   database = await constructDb('db');
 
   await notificationController.init();
-  await initNotificationListener();
+  await notificationListener.init();
 
   entireAppLoaded = false;
   currenciesJSON = await json.decode(
