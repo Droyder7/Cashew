@@ -353,7 +353,7 @@ Future<bool> scheduleDailyNotification(
       android: androidNotificationDetails,
       iOS: darwinNotificationDetails,
     );
-    await flutterLocalNotificationsPlugin.zonedSchedule(
+    await notificationPlugin.zonedSchedule(
       i,
       'notification-reminder-title'.tr(),
       chosenMessage,
@@ -378,7 +378,7 @@ Future<bool> scheduleDailyNotification(
   }
 
   // final List<PendingNotificationRequest> pendingNotificationRequests =
-  //     await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+  //     await notificationPlugin.pendingNotificationRequests();
 
   return true;
 }
@@ -386,7 +386,7 @@ Future<bool> scheduleDailyNotification(
 Future<bool> cancelDailyNotification() async {
   // Need to cancel all, including the one at 0 - even if it does not exist
   for (int i = 0; i <= 14; i++) {
-    await flutterLocalNotificationsPlugin.cancel(i);
+    await notificationPlugin.cancel(i);
   }
   print("Cancelled notifications for daily reminder");
   return true;
@@ -443,7 +443,7 @@ Future<bool> scheduleUpcomingTransactionsNotification(context) async {
       iOS: darwinNotificationDetails,
     );
     if (upcomingTransaction.dateCreated.isAfter(DateTime.now())) {
-      await flutterLocalNotificationsPlugin.zonedSchedule(
+      await notificationPlugin.zonedSchedule(
         idStart,
         'notification-upcoming-transaction-title'.tr(),
         chosenMessage,
@@ -484,7 +484,7 @@ Future<bool> cancelUpcomingTransactionsNotification() async {
   int idStart = 100;
   for (Transaction upcomingTransaction in upcomingTransactions) {
     idStart++;
-    await flutterLocalNotificationsPlugin.cancel(idStart);
+    await notificationPlugin.cancel(idStart);
   }
   print("Cancelled notifications for upcoming");
   return true;
@@ -509,44 +509,5 @@ Future<bool> initializeNotificationsPlatform() async {
   if (kIsWeb || Platform.isLinux) {
     return false;
   }
-  bool result = await checkNotificationsPermissionAll();
-  if (result) {
-    print("Notifications initialized");
-    return true;
-  } else {
-    return false;
-  }
-}
-
-Future<bool> checkNotificationsPermissionIOS() async {
-  bool? result = await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>()
-      ?.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-  if (result != true) return false;
-  return true;
-}
-
-Future<bool> checkNotificationsPermissionAndroid() async {
-  bool? result = await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-      ?.requestPermission();
-  if (result != true) return false;
-  return true;
-}
-
-Future<bool> checkNotificationsPermissionAll() async {
-  try {
-    if (Platform.isAndroid) return await checkNotificationsPermissionAndroid();
-    if (Platform.isIOS) return await checkNotificationsPermissionIOS();
-  } catch (e) {
-    print("Error setting up notifications: " + e.toString());
-    return false;
-  }
-  return false;
+  return await notificationController.checkNotificationPermission();
 }

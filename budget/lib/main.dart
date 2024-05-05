@@ -3,6 +3,7 @@ import 'package:budget/functions.dart';
 import 'package:budget/pages/autoTransactionsPageEmail.dart';
 import 'package:budget/struct/iconObjects.dart';
 import 'package:budget/struct/keyboardIntents.dart';
+import 'package:budget/struct/notification_listener.dart';
 import 'package:budget/widgets/fadeIn.dart';
 import 'package:budget/struct/languageMap.dart';
 import 'package:budget/struct/initializeBiometrics.dart';
@@ -51,7 +52,11 @@ void main() async {
   await EasyLocalization.ensureInitialized();
   sharedPreferences = await SharedPreferences.getInstance();
   database = await constructDb('db');
-  notificationPayload = await initializeNotifications();
+
+  await notificationController.init();
+
+  initNotificationListener();
+
   entireAppLoaded = false;
   currenciesJSON = await json.decode(
       await rootBundle.loadString('assets/static/generated/currencies.json'));
@@ -123,6 +128,7 @@ class App extends StatelessWidget {
     print("Rebuilt Material App");
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       showPerformanceOverlay: kProfileMode,
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,

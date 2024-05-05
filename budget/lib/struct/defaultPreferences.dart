@@ -123,7 +123,7 @@ Future<Map<String, dynamic>> getDefaultPreferences() async {
     "hasOnboarded": false,
     "autoAddAssociatedTitles": true,
     "AutoTransactions-canReadEmails": false,
-    "notificationScanningDebug": false,
+    "notificationScanningDebug": true,
     "notificationScanning": false,
     "accountColorfulAmountsWithArrows": false,
     "netTotalsColorful": false,
