@@ -6,7 +6,8 @@ import 'package:budget/pages/addEmailTemplate.dart';
 import 'package:budget/pages/addTransactionPage.dart';
 import 'package:budget/pages/editCategoriesPage.dart';
 import 'package:budget/struct/databaseGlobal.dart';
-import 'package:budget/struct/notification_listener.dart';
+import 'package:budget/struct/notificationsGlobal.dart';
+import 'package:budget/struct/services/utils/notification_parser.dart';
 import 'package:budget/struct/settings.dart';
 import 'package:budget/widgets/accountAndBackup.dart';
 import 'package:budget/widgets/button.dart';
@@ -49,7 +50,7 @@ class _InitializeNotificationServiceState
     if (appStateSettings["notificationScanningDebug"] == true &&
         appStateSettings["notificationScanning"] == true)
       Future.delayed(Duration.zero, () async {
-        await startNotificationListener();
+        await notificationListener.startService();
       });
   }
 
@@ -238,13 +239,13 @@ class _AutoTransactionsPageNotificationsState
             var hasPermission = false;
             late final bool isRunning;
             if (isActive) {
-              hasPermission = await requestNotificationListeningPermission();
+              hasPermission = await notificationListener.requestPermission();
               if (!hasPermission) {
                 return false;
               }
-              isRunning = await startNotificationListener();
+              isRunning = await notificationListener.startService();
             } else {
-              isRunning = !await stopNotificationListener();
+              isRunning = !await notificationListener.stopService();
             }
             await updateSettings(
               "notificationScanning",
@@ -279,7 +280,8 @@ class _AutoTransactionsPageNotificationsState
                 children: [
                   for (ScannerTemplate scannerTemplate in snapshot.data!)
                     ScannerTemplateEntry(
-                      messagesList: recentCapturedNotifications,
+                      messagesList:
+                          NotificationParser.recentNotificationMessages,
                       scannerTemplate: scannerTemplate,
                     )
                 ],
@@ -291,7 +293,7 @@ class _AutoTransactionsPageNotificationsState
         ),
         OpenContainerNavigation(
           openPage: AddEmailTemplate(
-            messagesList: recentCapturedNotifications,
+            messagesList: NotificationParser.recentNotificationMessages,
           ),
           borderRadius: 15,
           button: (openContainer) {
@@ -313,7 +315,7 @@ class _AutoTransactionsPageNotificationsState
           },
         ),
         EmailsList(
-          messagesList: recentCapturedNotifications,
+          messagesList: NotificationParser.recentNotificationMessages,
         ),
       ],
     );

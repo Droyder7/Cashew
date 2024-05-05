@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 AppLifecycleState appLifecycleState = AppLifecycleState.resumed;
 
@@ -65,6 +66,6 @@ class _OnAppResumeState extends State<OnAppResume> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return WithForegroundTask(child: widget.child);
   }
 }

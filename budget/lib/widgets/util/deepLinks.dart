@@ -8,8 +8,8 @@ import 'package:budget/pages/addEmailTemplate.dart';
 import 'package:budget/pages/addTransactionPage.dart';
 import 'package:budget/pages/autoTransactionsPageEmail.dart';
 import 'package:budget/struct/databaseGlobal.dart';
-import 'package:budget/struct/notification_listener.dart';
 import 'package:budget/struct/notificationsGlobal.dart';
+import 'package:budget/struct/services/utils/notification_parser.dart';
 import 'package:budget/struct/settings.dart';
 import 'package:budget/widgets/globalSnackbar.dart';
 import 'package:budget/widgets/importCSV.dart';
@@ -255,8 +255,8 @@ Future processAddTransactionRouteFromParams(
 Future processMessageToParse(
     BuildContext context, Map<String, String?> params) async {
   String messageString = params["messageToParse"].toString();
-  recentCapturedNotifications.insert(0, messageString);
-  recentCapturedNotifications.take(50);
+  NotificationParser.recentNotificationMessages.insert(0, messageString);
+  NotificationParser.recentNotificationMessages.take(50);
   dynamic result = await queueTransactionFromMessage(
     messageString,
     willPushRoute: true,
@@ -267,7 +267,7 @@ Future processMessageToParse(
       pushRoute(
         navigatorKey.currentContext!,
         AddEmailTemplate(
-          messagesList: recentCapturedNotifications,
+          messagesList: NotificationParser.recentNotificationMessages,
         ),
       );
   }

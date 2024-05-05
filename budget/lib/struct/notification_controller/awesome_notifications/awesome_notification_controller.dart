@@ -13,7 +13,7 @@ import 'package:budget/struct/databaseGlobal.dart';
 import 'package:budget/struct/notification_controller/awesome_notifications/extensions.dart';
 import 'package:budget/struct/notification_controller/models.dart';
 import 'package:budget/struct/notification_controller/notification_controller.dart';
-import 'package:budget/struct/notification_listener.dart';
+import 'package:budget/struct/services/utils/notification_parser.dart';
 import 'package:budget/struct/settings.dart';
 import 'package:budget/widgets/notificationsSettings.dart';
 import 'package:budget/widgets/openPopup.dart';
@@ -38,7 +38,7 @@ class AwesomeNotificationController extends NotificationController<
   @override
   ReceivedAction? get initialAction => _initialAction;
 
-  String get _defaultIcon => 'resource://drawable/notification_icon_android2';
+  String get _defaultIcon => 'resource://drawable/notification_icon_android';
 
   List<NotificationChannel> _channels = [];
 
@@ -163,7 +163,7 @@ class AwesomeNotificationController extends NotificationController<
           Duration.zero,
           () => pushPageWithoutContext(
             AddEmailTemplate(
-              messagesList: recentCapturedNotifications,
+              messagesList: NotificationParser.recentNotificationMessages,
             ),
           ),
         );
