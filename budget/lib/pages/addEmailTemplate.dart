@@ -1,10 +1,11 @@
 import 'package:budget/database/tables.dart';
 import 'package:budget/functions.dart';
 import 'package:budget/pages/addWalletPage.dart';
-import 'package:budget/pages/addTransactionPage.dart';
+import 'package:budget/pages/addButton.dart';
 import 'package:budget/pages/autoTransactionsPageEmail.dart';
 import 'package:budget/struct/databaseGlobal.dart';
 import 'package:budget/widgets/button.dart';
+import 'package:budget/widgets/incomeExpenseTabSelector.dart';
 import 'package:budget/widgets/navigationSidebar.dart';
 import 'package:budget/widgets/openBottomSheet.dart';
 import 'package:budget/widgets/openPopup.dart';
@@ -23,6 +24,30 @@ import 'dart:async';
 import 'package:budget/colors.dart';
 import 'package:googleapis/gmail/v1.dart' as gMail;
 import 'package:provider/provider.dart';
+
+enum MessagePart {
+  amount('(?<amount>\\d+(,\\d{2,})*(\\.\\d{1,})?)'),
+  title('(?<title>.+)'),
+  ignored('(.*)', false);
+
+  final String regex;
+  final bool required;
+
+  const MessagePart(this.regex, [this.required = true]);
+
+  String replaceWithRegex(String input, String substring) =>
+      input.replaceFirst(substring, regex);
+
+  static String getOutput(String input) {
+    var output = input;
+
+    for (final part in values) {
+      output = output.replaceAll(part.regex, '<<${part.name}>>');
+    }
+
+    return output;
+  }
+}
 
 class AddEmailTemplate extends StatefulWidget {
   AddEmailTemplate({
@@ -54,6 +79,8 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
   String? titleTransactionBefore;
   String? titleTransactionAfter;
   String? selectedTitle;
+  bool isIncome = false;
+  List<String> ignoredParts = [];
 
   @override
   void initState() {
@@ -63,11 +90,12 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
           ? null
           : widget.scannerTemplate!.walletFk;
       selectedName = widget.scannerTemplate!.templateName;
-      selectedSubject = widget.scannerTemplate!.contains;
+      selectedSubject = widget.scannerTemplate!.regex;
       amountTransactionBefore = widget.scannerTemplate!.amountTransactionBefore;
       amountTransactionAfter = widget.scannerTemplate!.amountTransactionAfter;
       titleTransactionBefore = widget.scannerTemplate!.titleTransactionBefore;
       titleTransactionAfter = widget.scannerTemplate!.titleTransactionAfter;
+      isIncome = widget.scannerTemplate!.income;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       updateInitial();
@@ -90,12 +118,7 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
   }
 
   determineBottomButton() {
-    if (getTransactionAmountFromEmail(
-              selectedMessageString ?? "",
-              amountTransactionBefore ?? "",
-              amountTransactionAfter ?? "",
-            ) ==
-            null &&
+    if (double.tryParse(selectedAmount ?? "") == null &&
         selectedMessageString != null) {
       setState(() {
         canAddTemplate = false;
@@ -111,10 +134,10 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
 
     if (selectedName == null) return;
     if (selectedCategory == null) return;
-    if (amountTransactionBefore == null) return;
-    if (amountTransactionAfter == null) return;
-    if (titleTransactionBefore == null) return;
-    if (titleTransactionAfter == null) return;
+    // if (amountTransactionBefore == null) return;
+    // if (amountTransactionAfter == null) return;
+    // if (titleTransactionBefore == null) return;
+    // if (titleTransactionAfter == null) return;
 
     setState(() {
       canAddTemplate = true;
@@ -152,6 +175,32 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
     });
     determineBottomButton();
     return;
+  }
+
+  Future<void> selectMessagePart(
+    BuildContext context, {
+    required String title,
+    String subtitle = '',
+    required Function(TextSelection selection) onSubmit,
+  }) async {
+    await openBottomSheet(
+      context,
+      MessagePartSelector(
+        title: title,
+        subtitle: subtitle,
+        messageString: selectedMessageString ?? '',
+        onSelectionChanged: () {
+          determineBottomButton();
+          setState(() {});
+        },
+        onSubmit: (selection) {
+          determineBottomButton();
+          setState(() {});
+          Navigator.pop(context);
+          onSubmit(selection);
+        },
+      ),
+    );
   }
 
   Widget selectSubjectText(String messageString, VoidCallback next) {
@@ -377,15 +426,17 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
           ? widget.scannerTemplate!.dateCreated
           : DateTime.now(),
       dateTimeModified: null,
-      amountTransactionAfter: amountTransactionAfter ?? "",
-      amountTransactionBefore: amountTransactionBefore ?? "",
-      contains: selectedSubject ?? "",
+      amountTransactionAfter: "",
+      amountTransactionBefore: "",
+      contains: "",
       defaultCategoryFk: selectedCategory!.categoryPk,
       templateName: selectedName ?? "",
       titleTransactionAfter: titleTransactionAfter ?? "",
       titleTransactionBefore: titleTransactionBefore ?? "",
       walletFk: selectedWalletPk ?? "-1",
       ignore: false,
+      regex: selectedSubject ?? "",
+      income: isIncome,
     );
   }
 
@@ -449,7 +500,15 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
             }
           },
           listWidgets: [
-            Container(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: IncomeExpenseTabSelector(
+                initialTabIsIncome: isIncome,
+                onTabChanged: (income) => setState(() {
+                  isIncome = income;
+                }),
+              ),
+            ),
             Padding(
               padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
               child: TextInput(
@@ -546,47 +605,75 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
             Padding(
               padding: const EdgeInsetsDirectional.symmetric(horizontal: 25),
               child: Button(
-                  label: "Select Message",
-                  onTap: () {
-                    openBottomSheet(
-                      context,
-                      PopupFramework(
-                        title: "Select Message",
-                        hasPadding: false,
-                        child: EmailsList(
-                          backgroundColor: getColor(context, "white"),
-                          messagesList: widget.messagesList,
-                          onTap: (messageString) {
-                            setMessageString(messageString);
-                            Navigator.pop(context);
-                            openBottomSheet(
-                              context,
-                              selectSubjectText(
-                                selectedMessageString ?? "",
-                                () {
-                                  openBottomSheet(
+                label: "Select Message",
+                onTap: () async {
+                  await openBottomSheet(
+                    context,
+                    PopupFramework(
+                      title: "Select Message",
+                      hasPadding: false,
+                      child: EmailsList(
+                        backgroundColor: getColor(context, "white"),
+                        messagesList: widget.messagesList,
+                        onTap: (messageString) {
+                          setMessageString(messageString);
+                          Navigator.pop(context);
+
+                          final msg = selectedMessageString!;
+
+                          selectMessagePart(
+                            context,
+                            title: 'Select Amount',
+                            onSubmit: (selection) {
+                              selectedAmount = msg.substring(
+                                selection.start,
+                                selection.end,
+                              );
+                              selectedSubject = msg;
+                              selectedSubject = MessagePart.amount
+                                  .replaceWithRegex(selectedSubject ?? '',
+                                      selectedAmount ?? '');
+
+                              setState(() {});
+
+                              selectMessagePart(
+                                context,
+                                title: 'Select Title',
+                                onSubmit: (selection) {
+                                  selectedTitle = msg.substring(
+                                    selection.start,
+                                    selection.end,
+                                  );
+                                  selectedSubject = MessagePart.title
+                                      .replaceWithRegex(selectedSubject ?? '',
+                                          selectedTitle ?? '');
+
+                                  selectMessagePart(
                                     context,
-                                    selectAmountText(
-                                      selectedMessageString ?? "",
-                                      () {
-                                        openBottomSheet(
-                                          context,
-                                          selectTitleText(
-                                            selectedMessageString ?? "",
-                                            () {},
-                                          ),
-                                        );
-                                      },
-                                    ),
+                                    title: 'Select Ignored Part',
+                                    onSubmit: (selection) {
+                                      final substring = msg.substring(
+                                        selection.start,
+                                        selection.end,
+                                      );
+                                      ignoredParts.add(substring);
+                                      selectedSubject =
+                                          MessagePart.ignored.replaceWithRegex(
+                                        selectedSubject ?? '',
+                                        substring,
+                                      );
+                                    },
                                   );
                                 },
-                              ),
-                            );
-                          },
-                        ),
+                              );
+                            },
+                          );
+                        },
                       ),
-                    );
-                  }),
+                    ),
+                  );
+                },
+              ),
             ),
             SizedBox(height: 15),
             Padding(
@@ -595,42 +682,45 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
                   ? Container()
                   : Column(
                       children: [
-                        TemplateInfoBox(
-                          onTap: () {
-                            openBottomSheet(
-                              context,
-                              selectSubjectText(
-                                selectedMessageString ?? "",
-                                () {},
-                              ),
-                            );
-                          },
-                          selectedText: selectedSubject ?? "",
-                          label: "Subject: ",
-                          secondaryLabel:
-                              "All messages containing this text will be checked.",
-                        ),
+                        // TemplateInfoBox(
+                        //   onTap: () {
+                        //     openBottomSheet(
+                        //       context,
+                        //       selectSubjectText(
+                        //         selectedMessageString ?? "",
+                        //         () {},
+                        //       ),
+                        //     );
+                        //   },
+                        //   selectedText: selectedSubject ?? "",
+                        //   label: "Subject: ",
+                        //   secondaryLabel:
+                        //       "All emails containing this text will be checked.",
+                        // ),
                         SizedBox(height: 10),
                         TemplateInfoBox(
                           onTap: () {
-                            openBottomSheet(
+                            selectMessagePart(
                               context,
-                              selectAmountText(
-                                selectedMessageString ?? "",
-                                () {},
-                              ),
+                              title: 'Select Amount',
+                              onSubmit: (selection) {
+                                final msg = selectedMessageString ?? '';
+                                selectedAmount = msg.substring(
+                                  selection.start,
+                                  selection.end,
+                                );
+                                selectedSubject = MessagePart.amount
+                                    .replaceWithRegex(selectedSubject ?? '',
+                                        selectedAmount ?? '');
+                              },
                             );
                           },
                           selectedText: selectedAmount ?? "",
                           label: "Amount: ",
                           secondaryLabel:
-                              "The selected amount from this message. Surrounding text will be used to find this amount in new messages.",
+                              "The selected amount from this email. Surrounding text will be used to find this amount in new emails.",
                           extraCheck: (input) {
-                            return getTransactionAmountFromEmail(
-                                  selectedMessageString ?? "",
-                                  amountTransactionBefore ?? "",
-                                  amountTransactionAfter ?? "",
-                                ) !=
+                            return double.tryParse(input.replaceAll(',', '')) !=
                                 null;
                           },
                           extraCheckMessage: "Please select a valid number!",
@@ -638,18 +728,78 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
                         SizedBox(height: 10),
                         TemplateInfoBox(
                           onTap: () {
-                            openBottomSheet(
+                            selectMessagePart(
                               context,
-                              selectTitleText(
-                                selectedMessageString ?? "",
-                                () {},
-                              ),
+                              title: 'Select Title',
+                              onSubmit: (selection) {
+                                final msg = selectedMessageString ?? '';
+                                selectedTitle = msg.substring(
+                                  selection.start,
+                                  selection.end,
+                                );
+                                selectedSubject = MessagePart.title
+                                    .replaceWithRegex(selectedSubject ?? '',
+                                        selectedTitle ?? '');
+                              },
                             );
                           },
                           selectedText: selectedTitle ?? "",
                           label: "Title: ",
                           secondaryLabel:
-                              "The selected title from this message. Surrounding text will be used to find this title in new messages.",
+                              "The selected title from this email. Surrounding text will be used to find this title in new emails.",
+                        ),
+                        SizedBox(height: 10),
+                        TextFont(
+                          text: "Ignored Parts",
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        SizedBox(height: 10),
+                        for (var i = 0; i < ignoredParts.length; i++)
+                          Container(
+                            margin: EdgeInsets.only(bottom: 12),
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15)),
+                              color: getColor(context, "lightDarkAccent"),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextFont(
+                                    text: '#${i + 1} : ${ignoredParts[i]}',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: AddButton(
+                                onTap: () {
+                                  final msg = selectedMessageString ?? '';
+                                  selectMessagePart(
+                                    context,
+                                    title: 'Select Ignored Part',
+                                    onSubmit: (selection) {
+                                      final substring = msg.substring(
+                                        selection.start,
+                                        selection.end,
+                                      );
+                                      ignoredParts.add(substring);
+                                      selectedSubject =
+                                          MessagePart.ignored.replaceWithRegex(
+                                        selectedSubject ?? '',
+                                        substring,
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -675,38 +825,20 @@ class _AddEmailTemplateState extends State<AddEmailTemplate> {
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
+                          SizedBox(height: 4),
                           TextFont(
-                            text: (selectedSubject ?? "").replaceAll("\n", ""),
+                            text: MessagePart.getOutput(selectedSubject ?? ''),
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             maxLines: 10,
                             textColor: Theme.of(context).colorScheme.primary,
                           ),
-                          SizedBox(height: 2),
+                          SizedBox(height: 4),
                           TextFont(
-                            text: (amountTransactionBefore ?? "")
-                                    .replaceAll("\n", "") +
-                                "..." +
-                                " [Amount] " +
-                                "..." +
-                                (amountTransactionAfter ?? "")
-                                    .replaceAll("\n", ""),
+                            text: (selectedSubject ?? "").replaceAll("\n", ""),
                             fontSize: 16,
                             maxLines: 10,
                             textColor: Theme.of(context).colorScheme.secondary,
-                          ),
-                          SizedBox(height: 2),
-                          TextFont(
-                            text: (titleTransactionBefore ?? "")
-                                    .replaceAll("\n", "") +
-                                "..." +
-                                " [Title] " +
-                                "..." +
-                                (titleTransactionAfter ?? "")
-                                    .replaceAll("\n", ""),
-                            fontSize: 16,
-                            maxLines: 10,
-                            textColor: Theme.of(context).colorScheme.tertiary,
                           ),
                         ],
                       ),
@@ -795,6 +927,79 @@ class TemplateInfoBox extends StatelessWidget {
             )
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MessagePartSelector extends StatefulWidget {
+  const MessagePartSelector({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    this.infoMessage =
+        "Long press/double tap to select text. Press the 'Done' button at the bottom after selected",
+    required this.messageString,
+    required this.onSelectionChanged,
+    required this.onSubmit,
+  });
+  final String title, subtitle, infoMessage, messageString;
+  final VoidCallback onSelectionChanged;
+  final Function(TextSelection selection) onSubmit;
+
+  @override
+  State<MessagePartSelector> createState() => _MessagePartSelectorState();
+}
+
+class _MessagePartSelectorState extends State<MessagePartSelector> {
+  TextSelection textSelection = TextSelection.collapsed(offset: 0);
+  @override
+  Widget build(BuildContext context) {
+    return PopupFramework(
+      title: widget.title,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFont(
+            text: widget.subtitle,
+            fontSize: 14,
+            maxLines: 10,
+            textAlign: TextAlign.left,
+          ),
+          SizedBox(height: 5),
+          TextFont(
+            text: widget.infoMessage,
+            fontSize: 14,
+            maxLines: 10,
+            textAlign: TextAlign.left,
+          ),
+          SizedBox(height: 15),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(15)),
+              color: getColor(context, "lightDarkAccentHeavy"),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(15),
+              child: SelectableText(
+                widget.messageString,
+                toolbarOptions: ToolbarOptions(
+                    copy: false, cut: false, paste: false, selectAll: false),
+                onSelectionChanged: (selection, changeCause) {
+                  setState(() {
+                    textSelection = selection;
+                  });
+                  widget.onSelectionChanged();
+                },
+              ),
+            ),
+          ),
+          SizedBox(height: 10),
+          Button(
+            label: "done".tr(),
+            onTap: () => widget.onSubmit(textSelection),
+          )
+        ],
       ),
     );
   }
