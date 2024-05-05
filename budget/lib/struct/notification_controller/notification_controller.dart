@@ -1,4 +1,5 @@
-import 'dart:ui';
+import 'package:budget/struct/notification_controller/models.dart';
+import 'package:flutter/material.dart';
 
 abstract class NotificationController<T, S, U> {
   Future<bool> initNotificationPlugin();
@@ -10,13 +11,13 @@ abstract class NotificationController<T, S, U> {
   Future<bool> checkNotificationPermission();
 
   Future<int?> createNotification({
-    required NotificationContent content,
+    required NotificationData content,
     NotificationType type = NotificationType.alert,
     S? payload,
   });
 
   Future<int?> scheduleNotification({
-    required NotificationContent content,
+    required NotificationData content,
     NotificationType type = NotificationType.alert,
     required U schedule,
     S? payload,
@@ -26,26 +27,20 @@ abstract class NotificationController<T, S, U> {
   Future<void> cancelNotification(int id);
 
   Future<void> cancelAllNotifications();
-}
 
-class NotificationContent {
-  final String title;
-  final String? body;
-  final Color? color;
-  final String? largeIcon;
-
-  NotificationContent({
-    required this.title,
-    this.body,
-    this.color,
-    this.largeIcon,
+  Future<bool> scheduleDailyNotification(
+    BuildContext context,
+    TimeOfDay timeOfDay, {
+    bool scheduleNowDebug = false,
   });
+
+  Future<bool> cancelDailyNotification();
+
+  Future<bool> scheduleUpcomingTransactionsNotification(BuildContext context);
+
+  Future<bool> cancelUpcomingTransactionsNotification();
 }
 
-enum NotificationType {
-  alert,
-  reminder,
-  creditTransaction,
-  debitTransaction,
-  transfer
-}
+List<String> reminderStrings = [
+  for (int i = 1; i <= 26; i++) "notification-reminder-" + i.toString()
+];

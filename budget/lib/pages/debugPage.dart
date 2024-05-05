@@ -8,6 +8,7 @@ import 'package:budget/pages/autoTransactionsPageEmail.dart';
 import 'package:budget/pages/homePage/homePage.dart';
 import 'package:budget/pages/settingsPage.dart';
 import 'package:budget/struct/databaseGlobal.dart';
+import 'package:budget/struct/notificationsGlobal.dart';
 import 'package:budget/struct/settings.dart';
 import 'package:budget/widgets/button.dart';
 import 'package:budget/widgets/framework/popupFramework.dart';
@@ -468,7 +469,8 @@ class DebugPage extends StatelessWidget {
             label: "Send Notification",
             onTap: () async {
               initializeNotificationsPlatform();
-              scheduleDailyNotification(context, TimeOfDay.now(),
+              notificationController.scheduleDailyNotification(
+                  context, TimeOfDay.now(),
                   scheduleNowDebug: true);
             }),
         SizedBox(height: 20),

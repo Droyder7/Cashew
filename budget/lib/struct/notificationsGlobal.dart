@@ -1,7 +1,7 @@
-import 'package:budget/struct/notification_controller/local_notification_controller.dart';
+import 'package:budget/struct/notification_controller/awesome_notifications/awesome_notification_controller.dart';
 
 String? notificationPayload;
 
-final notificationController = LocalNotificationController.instance;
+final notificationController = AwesomeNotificationController.instance;
 
-final notificationPlugin = LocalNotificationController.plugin;
+final notificationPlugin = AwesomeNotificationController.plugin;
