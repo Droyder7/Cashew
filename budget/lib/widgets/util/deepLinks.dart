@@ -354,22 +354,34 @@ Future executeAppLink(BuildContext? context, Uri uri,
 Future<int?> addTransactionFromParams(Map<String, String?> params) async {
   MainAndSubcategory mainAndSubCategory =
       await getMainAndSubcategoryFromParams(params);
+  TransactionWallet? wallet = await getWalletFromParams(params);
+  String walletPk = wallet?.walletPk ?? appStateSettings["selectedWalletPk"];
   double amount = getAmountFromParams(params);
+  String title = params["title"] ?? params["name"] ?? "";
+  String note = params["note"] ?? params["notes"] ?? "";
 
-  final title = params["title"] ?? "";
-  final wallet = await database.getWalletInstance(
-    params['walletPk'] ?? appStateSettings["selectedWalletPk"],
-  );
+  final mainCategoryPk = mainAndSubCategory.main?.categoryPk;
+
+  if (mainCategoryPk == null) {
+    openSnackbar(SnackbarMessage(
+      title: "category-not-selected".tr(),
+      description: "all-transactions-require-a-category".tr(),
+      icon: appStateSettings["outlinedIcons"]
+          ? Icons.warning_amber_outlined
+          : Icons.warning_amber_rounded,
+    ));
+    return null;
+  }
 
   final rowId = await database.createOrUpdateTransaction(
     Transaction(
       transactionPk: "-1",
       name: title,
       amount: amount,
-      note: params["notes"] ?? "",
-      categoryFk: mainAndSubCategory.main?.categoryPk ?? "",
+      note: note,
+      categoryFk: mainCategoryPk,
       subCategoryFk: mainAndSubCategory.sub?.categoryPk,
-      walletFk: wallet.walletPk,
+      walletFk: walletPk,
       dateCreated: DateTime.now(),
       income: amount > 0,
       paid: true,

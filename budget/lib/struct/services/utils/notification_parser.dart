@@ -1,4 +1,3 @@
-// TODO: make it user configurable from settings
 import 'package:budget/database/tables.dart';
 import 'package:budget/struct/databaseGlobal.dart';
 import 'package:budget/struct/notification_controller/models.dart';
@@ -8,8 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 
 class Notification {
-  final int id;
-  final String title, message, packageName;
+  final String id, title, message, packageName;
 
   Notification({
     required this.id,
@@ -19,7 +17,7 @@ class Notification {
   });
 
   factory Notification.fromEvent(NotificationEvent event) => Notification(
-        id: event.id ?? 1,
+        id: event.uniqueId ?? DateTime.now().toIso8601String(),
         title: event.title ?? '',
         message: NotificationParser.getSanitizedMessage(event.text),
         packageName: event.packageName!,
@@ -53,7 +51,9 @@ class NotificationParser {
     final notification = Notification.fromEvent(event);
 
     final isDuplicate = recentNotifications.any((e) =>
-        e.packageName == notification.packageName && e.id == notification.id);
+        e.packageName == notification.packageName &&
+        e.id == notification.id &&
+        e.message == notification.message);
 
     if (isDuplicate) {
       return null;
